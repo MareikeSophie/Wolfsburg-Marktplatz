@@ -11,25 +11,22 @@ html,body{height:100%;}
 /*
   Primary target: iPad 11" (2360×1640 px @264ppi, e.g. iPad Air 11"/iPad Pro 11"),
   landscape, device pixel ratio 2 → logical/CSS viewport ≈ 1180×820px.
-  Layout is built with viewport height + flex + aspect-ratio (not hardcoded px)
-  so it locks to that viewport while still holding up at nearby sizes.
 
-  iPadOS Safari note: the *real* bug wasn't the viewport unit at all — it was
-  that body could still scroll by a hair (the old overflow-y:auto "safety
-  net"), and iOS collapses its compact toolbar in response to page scroll.
-  As the toolbar collapsed, visualViewport.height grew and our own resize
-  listener kept enlarging the layout to match — which looked like "the
-  frame keeps growing while I scroll, then snaps once the toolbar is fully
-  gone". Fix: body never scrolls (overflow hidden on both axes), so there's
-  nothing to trigger the toolbar's scroll-collapse behaviour in the first
-  place; --app-vh (set via visualViewport in engine.js) only needs to
-  handle real orientation/resize changes now.
+  iPadOS Safari note: earlier versions of this layout tried to make the whole
+  page fill the viewport exactly (100vh/dvh/svh, then a JS visualViewport
+  measurement) so nothing would ever need to scroll. That fought a genuine
+  WebKit bug: on first paint, landscape can briefly report portrait-ish
+  viewport metrics, which squeezed .design-col hard against a non-shrinking
+  phone column — only correcting once a later reflow (e.g. an image
+  finishing loading, or a scroll) forced Safari to recompute. Rather than
+  chase that timing bug, the page is now normal document flow (can scroll a
+  hair if it must) — nothing here depends on getting an exact viewport
+  height on the very first frame, so the transient bad measurement is a
+  non-issue. The phone's 19.5:9 ratio itself is unaffected either way.
 */
 body{
   margin:0; background:#ebebeb; font-family:var(--font-display); color:var(--ink);
-  display:flex; flex-direction:column; align-items:center;
-  height:100vh; height:100svh; height:var(--app-vh, 100svh);
-  overflow:hidden; overscroll-behavior:none;
+  display:flex; flex-direction:column; align-items:center; min-height:100vh;
 }
 
 /* ── page header ── */
@@ -48,13 +45,13 @@ body{
 
 /* ── layout ── */
 .layout{
-  flex:1 1 auto; min-height:0; width:100%; max-width:1200px; padding:8px 24px 20px;
-  display:flex; gap:32px; align-items:stretch; justify-content:center;
+  width:100%; max-width:1200px; padding:8px 24px 24px;
+  display:flex; gap:32px; align-items:center; justify-content:center; flex-wrap:wrap;
 }
 
 /* ── left: design column ── */
 .design-col{
-  flex:0 1 420px; min-width:0; align-self:center;
+  flex:0 1 420px; min-width:280px;
   display:flex; flex-direction:column; gap:10px;
 }
 .design-col .stage-frame{
@@ -77,11 +74,12 @@ body{
 }
 
 /* ── right: phone ── */
-.phone-wrap{flex:0 0 auto; height:100%; display:flex; align-items:center; justify-content:center;}
+.phone-wrap{flex:0 0 auto; display:flex; align-items:center; justify-content:center;}
 .phone-frame{
-  /* fixed 19.5:9 phone aspect ratio, always — height comes from the available
-     row height, width is derived from it, never the other way round */
-  height:100%; max-height:100%; width:auto; aspect-ratio:9/19.5;
+  /* fixed 19.5:9 phone aspect ratio, always — a single simple vh value (not a
+     chain of percentage heights through several ancestors) drives the size,
+     width is derived from it via aspect-ratio, never the other way round */
+  height:min(76vh,660px); width:auto; aspect-ratio:9/19.5;
   overflow:hidden; background:#0b0b0b; border-radius:9%/4.3%; padding:2.5% 2%;
   border:1px solid #3a3a3a; display:flex; flex-direction:column;
 }
@@ -227,12 +225,9 @@ body{
 }
 
 @media (max-width:820px){
-  /* narrower than the iPad target: fall back to a normally-scrolling page with
-     the design column and phone stacked, phone still locked to 19.5:9 */
-  html,body{height:auto; min-height:100%;}
-  body{overflow:visible;}
-  .layout{flex-direction:column; align-items:center; overflow:visible;}
-  .design-col{align-self:center; max-width:min(420px,92vw); width:100%;}
-  .phone-wrap{height:auto;}
-  .phone-frame{height:70vh; max-height:70vh;}
+  /* narrower than the iPad target: stack the design column above the phone,
+     phone still locked to 19.5:9 */
+  .layout{flex-direction:column; align-items:center;}
+  .design-col{max-width:min(420px,92vw); width:100%;}
+  .phone-frame{height:min(70vh,640px);}
 }

@@ -21,19 +21,26 @@
   const stageCaptionEl = document.getElementById("stageCaption");
   const restartBtn = document.getElementById("restartBtn");
 
-  // iPad Safari's 100vh/dvh/svh can all report a stale viewport height on the
-  // very first paint (only correcting after a real resize/scroll forces it to
-  // settle). visualViewport reflects the truly visible area immediately, so
-  // we measure it ourselves and drive body's height from --app-vh instead.
-  function setAppHeight(){
-    const h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-    document.documentElement.style.setProperty("--app-vh", h + "px");
+  // iPad Safari can briefly report viewport metrics from the wrong
+  // orientation on the very first paint after a fresh load, self-correcting
+  // only once something forces a reflow (a scroll, a resize, an image
+  // finishing loading...). The CSS (min(76vh,660px) on .phone-frame) is the
+  // primary sizing and is fine on its own once that settles — this just
+  // nudges the correction along proactively instead of waiting on the user
+  // to scroll into it, by re-applying an explicit inline height a few times
+  // shortly after load using the true visible size from visualViewport.
+  const phoneFrameEl = document.querySelector(".phone-frame");
+  function correctPhoneFrameHeight(){
+    if(!phoneFrameEl || !window.visualViewport) return;
+    // mirrors the CSS min(76vh,660px) rule, just computed from the visible
+    // viewport directly instead of trusting the browser's own vh timing
+    phoneFrameEl.style.height = Math.min(window.visualViewport.height * 0.76, 660) + "px";
   }
-  setAppHeight();
-  window.addEventListener("resize", setAppHeight);
-  window.addEventListener("orientationchange", () => setTimeout(setAppHeight, 60));
+  [0, 150, 500, 1200].forEach(delay => setTimeout(correctPhoneFrameHeight, delay));
+  window.addEventListener("resize", correctPhoneFrameHeight);
+  window.addEventListener("orientationchange", () => setTimeout(correctPhoneFrameHeight, 200));
   if(window.visualViewport){
-    window.visualViewport.addEventListener("resize", setAppHeight);
+    window.visualViewport.addEventListener("resize", correctPhoneFrameHeight);
   }
 
   let cursor = START_NODE;
