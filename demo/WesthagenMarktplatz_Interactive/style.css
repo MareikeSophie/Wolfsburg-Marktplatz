@@ -11,13 +11,21 @@ html,body{height:100%;}
 /*
   Primary target: iPad 11" (2360×1640 px @264ppi, e.g. iPad Air 11"/iPad Pro 11"),
   landscape, device pixel ratio 2 → logical/CSS viewport ≈ 1180×820px.
-  Layout is built with 100vh + flex + aspect-ratio (not hardcoded px) so it locks
-  to that viewport exactly while still holding up if Safari's chrome shaves a
-  few px off, or the page is opened at a nearby size.
+  Layout is built with viewport height + flex + aspect-ratio (not hardcoded px)
+  so it locks to that viewport while still holding up at nearby sizes.
+
+  iPadOS Safari note: 100vh assumes the browser chrome (toolbar) is hidden,
+  which in landscape it usually isn't — using plain 100vh here clipped the
+  bottom of the layout with no way to scroll to it. 100dvh reflects the
+  actually-visible viewport and is supported on any iPad recent enough to
+  have this screen; kept 100vh as a fallback for non-supporting browsers.
+  overflow-y is auto (not hidden) as a safety net in case chrome height
+  still shifts after layout (e.g. toolbar animating in/out).
 */
 body{
   margin:0; background:#ebebeb; font-family:var(--font-display); color:var(--ink);
-  display:flex; flex-direction:column; align-items:center; height:100vh; overflow:hidden;
+  display:flex; flex-direction:column; align-items:center;
+  height:100vh; height:100dvh; overflow-x:hidden; overflow-y:auto;
 }
 
 /* ── page header ── */
