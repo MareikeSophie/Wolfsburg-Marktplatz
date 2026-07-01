@@ -16,16 +16,17 @@ html,body{height:100%;}
 
   iPadOS Safari note: 100vh assumes the browser chrome (toolbar) is hidden,
   which in landscape it usually isn't — using plain 100vh here clipped the
-  bottom of the layout with no way to scroll to it. 100dvh reflects the
-  actually-visible viewport and is supported on any iPad recent enough to
-  have this screen; kept 100vh as a fallback for non-supporting browsers.
-  overflow-y is auto (not hidden) as a safety net in case chrome height
-  still shifts after layout (e.g. toolbar animating in/out).
+  bottom of the layout with no way to scroll to it. 100dvh looked right too,
+  but only *after* a scroll: on first paint Safari uses the large/chrome-
+  hidden viewport for dvh and only recalculates once a scroll forces it to
+  commit to a toolbar state. 100svh is the small/chrome-visible viewport —
+  correct from the very first paint, no scroll needed. overflow-y stays
+  auto as a safety net in case the toolbar height still shifts afterwards.
 */
 body{
   margin:0; background:#ebebeb; font-family:var(--font-display); color:var(--ink);
   display:flex; flex-direction:column; align-items:center;
-  height:100vh; height:100dvh; overflow-x:hidden; overflow-y:auto;
+  height:100vh; height:100svh; overflow-x:hidden; overflow-y:auto;
 }
 
 /* ── page header ── */
