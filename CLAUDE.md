@@ -4,17 +4,22 @@ Thesis-Projekt (Urban Design, Bauhaus-Universität Weimar, englischsprachiges Pr
 
 ## Outputs
 
-Es gibt **zwei unabhängige Demo-Dateien**:
+Es gibt **drei unabhängige Demos**:
 
 ### Demo 1: WesthagenGrows (aktiv weiterentwickelt)
 1. **`demo/WesthagenGrows_Demo.html`** – animierte 16:9-Präsentation (~17 MB, standalone HTML/CSS/JS, kein Build-Prozess, alles inline). Zeigt eine WhatsApp-Chat-Simulation im Phone-Mockup (rechts), links eine Design-Spalte (Titel "westhagen plays", aktueller Decision Tree, mittig 6-Monats-Kalender). Vollständig fertig (Stand 2026-06-25).
 2. **`docs/WesthagenGrows_Chat.docx`** – Chat-Skript Teil 1: Spielplatzentwurf, Stages 1–8, April–Juli 2026.
 3. **`docs/WesthagenFest_Chat.docx`** – Chat-Skript Teil 2: Erntefest WesthagenFest, Stages 9–17, August–September 2026.
 
-### Demo 2: WesthagenMarktplatz (älteres/separates Demo)
-4. **`demo/WesthagenMarktplatz_Demo.html`** – älteres Demo (~64,8 MB), 150 MESSAGES, 9 Tage (Wochentage ohne vollständiges Datum), keine Stages/Decision Trees, 12 eingebettete Chat-Fotos, Message-Typen: `date`, `system`, `msg`, `poll`, `transition`, `image`, `file`, `fastForward`, `event`. Struktur deutlich einfacher als Demo 1.
+### Demo 2: WesthagenMarktplatz (älteres/separates Demo, Autoplay)
+4. **`demo/WesthagenMarktplatz_Demo.html`** – älteres Demo (~64,8 MB), 150 MESSAGES, 9 Tage (Wochentage ohne vollständiges Datum), keine Stages/Decision Trees, Message-Typen: `date`, `system`, `msg`, `poll`, `transition`, `image`, `file`, `fastForward`, `event`. Struktur deutlich einfacher als Demo 1. Die 65 MB kommen fast vollständig aus einem `STAGES`-Array (13 Einträge × `iso`+`materials`, base64), das dieselben Bilder erneut einbettet, die bereits unter `assets/Renderings/` und `assets/Materials/` liegen.
 
-**Wichtig:** Inhaltliche Änderungen am Chatverlauf müssen in HTML-Demo UND entsprechendem .docx gleichzeitig nachgezogen werden.
+### Demo 3: WesthagenMarktplatz Interactive (in Arbeit, siehe unten)
+5. **`demo/WesthagenMarktplatz_Interactive/`** (`index.html` + `style.css` + `story.js` + `engine.js`, ~90 KB) – echte scrollbare/interaktive Website statt Autoplay-Slide, basiert 1:1 auf dem Content von Demo 2. Kein Base64: Bilder werden per `<img>` direkt aus `assets/Renderings/` und `assets/Materials/` referenziert.
+   - `story.js` (generiert): `STORY`-Objekt, Nodes keyed by `id` (`m1`…`m150`) mit `next`-Zeiger statt Array-Index — vorbereitet für spätere `type:"choice"`/`type:"ending"`-Nodes (Branching noch nicht befüllt, s. "Aktueller Stand").
+   - `engine.js`: scroll-getriebenes Nachladen (kein Timer/Autoplay), klickbare Polls (Ergebnis + eigene Stimme via `localStorage` gespeichert), Design-Spalte folgt `image`-Nodes.
+
+**Wichtig:** Inhaltliche Änderungen am Chatverlauf müssen in HTML-Demo UND entsprechendem .docx gleichzeitig nachgezogen werden. Das gilt aktuell nicht für Demo 3, solange dort nur 1:1 portierter Content ohne eigenes Wording steht.
 
 ## Struktur der HTML-Demo
 
@@ -90,3 +95,10 @@ Demo ist vollständig fertig:
 - Zeitübergangs-Benachrichtigungen ("Two weeks later" etc.) entfernt
 - Kalender: 6-Monats-Jahr-Ansicht April–September
 - Demo-Laufzeit: ~4,6 min (1×) / ~3,1 min (1,5×) / ~2,3 min (2×)
+
+## Demo 3 — Aktueller Stand (2026-07-01)
+
+Gerüst + 1:1-Content-Port sind fertig und getestet (Node-Count-Diff gegen Demo 2, jsdom-Smoke-Test aller 150 Nodes inkl. Poll-Klick/Reload-Persistenz — kein echter Browser-Test möglich, da im Environment weder `chromium-cli` noch `playwright` installiert sind). Noch offen, bewusst nicht Teil dieser Iteration:
+- Platzierung und Wording der Branch-Punkte (`type:"choice"`) und der 3 Endings (`type:"ending"`) — Content-Design, gemeinsam mit Nutzerin zu erarbeiten.
+- `.docx`-Skript für Demo 3, sobald der Branch-Content feststeht.
+- Echter Browser-Check vor Auslieferung. Lokal am einfachsten über einen simplen HTTP-Server öffnen (z.B. `npx serve .` im Projektroot, dann `/demo/WesthagenMarktplatz_Interactive/`), damit die relativen `../../assets/...`-Bildpfade sicher genauso aufgelöst werden wie später online.

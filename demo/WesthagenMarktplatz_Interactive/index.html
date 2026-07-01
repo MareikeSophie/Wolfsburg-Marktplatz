@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Westhagen Plays — Interactive Chat</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="pagehead">
+  <div>
+    <h1>westhagen plays</h1>
+    <p>Scroll through the neighbourhood chat, vote in the polls, and make choices along the way. Your progress is saved automatically in this browser.</p>
+  </div>
+  <button class="restart-btn" id="restartBtn" type="button">Restart</button>
+</header>
+
+<main class="layout">
+  <section class="design-col" aria-label="Current design stage">
+    <div class="stage-label">Design progress</div>
+    <div class="stage-frame">
+      <img id="stageIso" alt="Current design stage">
+    </div>
+    <div class="materials-strip">
+      <img id="stageMaterials" alt="Materials for current stage">
+    </div>
+    <p class="stage-caption" id="stageCaption">The story hasn't shared a design update yet.</p>
+  </section>
+
+  <section class="phone-wrap" aria-label="Chat">
+    <div class="phone-frame">
+      <div class="screen">
+        <div class="waheader">
+          <div class="avatar">L</div>
+          <div class="meta">
+            <div class="title">Westhagen Marktplatz</div>
+            <div class="sub">neighbourhood group</div>
+          </div>
+        </div>
+        <div class="chatbody" id="chatbody"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="story.js"></script>
+<script src="engine.js"></script>
+</body>
+</html>
