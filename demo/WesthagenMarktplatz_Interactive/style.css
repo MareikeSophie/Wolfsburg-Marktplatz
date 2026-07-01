@@ -14,19 +14,21 @@ html,body{height:100%;}
   Layout is built with viewport height + flex + aspect-ratio (not hardcoded px)
   so it locks to that viewport while still holding up at nearby sizes.
 
-  iPadOS Safari note: 100vh assumes the browser chrome (toolbar) is hidden,
-  which in landscape it usually isn't — using plain 100vh here clipped the
-  bottom of the layout with no way to scroll to it. 100dvh looked right too,
-  but only *after* a scroll: on first paint Safari uses the large/chrome-
-  hidden viewport for dvh and only recalculates once a scroll forces it to
-  commit to a toolbar state. 100svh is the small/chrome-visible viewport —
-  correct from the very first paint, no scroll needed. overflow-y stays
-  auto as a safety net in case the toolbar height still shifts afterwards.
+  iPadOS Safari note: 100vh/100dvh/100svh all assume the toolbar chrome is
+  in some settled state, but on iPad landscape the *initial* paint can use
+  a stale/incorrect viewport metric that only gets corrected once a real
+  resize/scroll event fires — no CSS viewport unit alone fixed it here.
+  engine.js measures the real visible height via the visualViewport API
+  (built for exactly this) and writes it to --app-vh on load, so body's
+  height is pixel-correct from the first frame, no interaction required.
+  overflow-y stays auto as a safety net in case the toolbar height still
+  shifts afterwards (e.g. the compact toolbar collapsing).
 */
 body{
   margin:0; background:#ebebeb; font-family:var(--font-display); color:var(--ink);
   display:flex; flex-direction:column; align-items:center;
-  height:100vh; height:100svh; overflow-x:hidden; overflow-y:auto;
+  height:100vh; height:100svh; height:var(--app-vh, 100svh);
+  overflow-x:hidden; overflow-y:auto;
 }
 
 /* ── page header ── */

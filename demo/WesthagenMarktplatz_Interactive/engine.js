@@ -21,6 +21,21 @@
   const stageCaptionEl = document.getElementById("stageCaption");
   const restartBtn = document.getElementById("restartBtn");
 
+  // iPad Safari's 100vh/dvh/svh can all report a stale viewport height on the
+  // very first paint (only correcting after a real resize/scroll forces it to
+  // settle). visualViewport reflects the truly visible area immediately, so
+  // we measure it ourselves and drive body's height from --app-vh instead.
+  function setAppHeight(){
+    const h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    document.documentElement.style.setProperty("--app-vh", h + "px");
+  }
+  setAppHeight();
+  window.addEventListener("resize", setAppHeight);
+  window.addEventListener("orientationchange", () => setTimeout(setAppHeight, 60));
+  if(window.visualViewport){
+    window.visualViewport.addEventListener("resize", setAppHeight);
+  }
+
   let cursor = START_NODE;
   let stageIndex = 0;
   let finished = false;
