@@ -485,14 +485,17 @@
   // messages) that plays on its own, then pauses with a "scroll to join"
   // hint instead of continuing to auto-fill the whole screen — scrolling
   // from then on is what drives every further reveal.
-  const AUTO_INTRO_COUNT = 5;
+  const AUTO_INTRO_COUNT = 7; // through Petra's message (m1-m7: join notice + first 5 messages)
   let introDone = false;
   let introRevealed = 0;
   let introHintEl = null;
 
   function renderIntroHint(){
+    // arrow points up: the gesture that continues the chat is swiping up
+    // (finger moves up the screen, content advances) — same direction that
+    // already drives every later reveal, just made explicit here
     const hint = el("div", "intro-hint",
-      '<div class="intro-hint-arrow">&#8595;</div><div class="intro-hint-text">Scroll to join the chat</div>');
+      '<div class="intro-hint-arrow">&#8593;</div><div class="intro-hint-text">Swipe up to continue</div>');
     chatbody.insertBefore(hint, revealSpacer);
     hint.classList.add("in");
     return hint;
