@@ -30,11 +30,24 @@
   // to scroll into it, by re-applying an explicit inline height a few times
   // shortly after load using the true visible size from visualViewport.
   const phoneFrameEl = document.querySelector(".phone-frame");
+  const screenEl = document.querySelector(".screen");
+  const CHAT_REFERENCE_WIDTH = 375; // the width the chat's em-based sizing was designed at
+
   function correctPhoneFrameHeight(){
-    if(!phoneFrameEl || !window.visualViewport) return;
-    // mirrors the CSS min(76vh,660px) rule, just computed from the visible
-    // viewport directly instead of trusting the browser's own vh timing
-    phoneFrameEl.style.height = Math.min(window.visualViewport.height * 0.76, 660) + "px";
+    if(phoneFrameEl && window.visualViewport){
+      // mirrors the CSS min(76vh,660px) rule, just computed from the visible
+      // viewport directly instead of trusting the browser's own vh timing
+      phoneFrameEl.style.height = Math.min(window.visualViewport.height * 0.76, 660) + "px";
+    }
+    // --chat-scale drives .screen's font-size (em-based sizing cascades from
+    // it). Measured directly via getBoundingClientRect right after setting
+    // the height above, so it reflects the real rendered width immediately —
+    // no dependency on the browser's own container-query resolution timing,
+    // which is what made cqw-based sizing balloon on first paint here.
+    if(screenEl){
+      const w = screenEl.getBoundingClientRect().width;
+      if(w > 0) document.documentElement.style.setProperty("--chat-scale", w / CHAT_REFERENCE_WIDTH);
+    }
   }
   [0, 150, 500, 1200].forEach(delay => setTimeout(correctPhoneFrameHeight, delay));
   window.addEventListener("resize", correctPhoneFrameHeight);
@@ -42,6 +55,7 @@
   if(window.visualViewport){
     window.visualViewport.addEventListener("resize", correctPhoneFrameHeight);
   }
+  correctPhoneFrameHeight();
 
   let cursor = START_NODE;
   let stageIndex = 0;
