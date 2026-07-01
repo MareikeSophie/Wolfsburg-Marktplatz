@@ -135,12 +135,12 @@
   // A permanently-present blank spacer at the end of the chat keeps chatbody
   // scrollable even when only one message has been revealed so far — without
   // it, short content has no overflow and the scroll listener never fires.
-  // New rows are inserted before it, so it always stays last.
+  // New rows are inserted before it, so it always stays last. Its height is a
+  // small fixed CSS value (not tied to chatbody's own height) — making it as
+  // tall as the screen meant scrolling through a near-empty screen's worth of
+  // nothing before each new message, instead of messages filling up normally.
   const revealSpacer = el("div", "reveal-spacer");
   chatbody.appendChild(revealSpacer);
-  function syncSpacerHeight(){
-    revealSpacer.style.height = (chatbody.clientHeight + 40) + "px";
-  }
 
   // Play the rise-in animation only once a row actually scrolls into view,
   // not the moment it's inserted (it's usually inserted just below the fold,
@@ -431,7 +431,6 @@
   }
 
   function fillViewport(){
-    syncSpacerHeight();
     let guard = 0;
     while(!finished && !awaitingChoice && guard < 300){
       const remaining = chatbody.scrollHeight - chatbody.scrollTop - chatbody.clientHeight;

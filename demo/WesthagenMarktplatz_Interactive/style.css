@@ -125,7 +125,7 @@ body{
 /* invisible, height set from JS — keeps chatbody scrollable even when only
    one message has been revealed, so messages can pop in as you scroll
    instead of a whole screenful appearing at once */
-.reveal-spacer{flex:0 0 auto;}
+.reveal-spacer{flex:0 0 auto; height:110px;}
 .row{display:flex; gap:0.375em; max-width:88%; margin-bottom:0.445em; opacity:0; transform:translateY(32px);}
 .row.in{animation:rise .38s cubic-bezier(.2,.7,.3,1) forwards;}
 .row.outgoing{align-self:flex-end;}
