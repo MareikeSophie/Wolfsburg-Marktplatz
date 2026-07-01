@@ -128,9 +128,28 @@
     revealSpacer.style.height = (chatbody.clientHeight + 40) + "px";
   }
 
+  // Play the rise-in animation only once a row actually scrolls into view,
+  // not the moment it's inserted (it's usually inserted just below the fold,
+  // so animating immediately meant the animation had already finished by
+  // the time the user scrolled far enough to see it land).
+  const animObserver = ("IntersectionObserver" in window)
+    ? new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if(entry.isIntersecting){
+            entry.target.classList.add("in");
+            animObserver.unobserve(entry.target);
+          }
+        });
+      }, { root: chatbody, threshold: 0.15 })
+    : null;
+
   function appendRow(rowEl, instant){
-    rowEl.classList.add(instant ? "instant" : "in");
     chatbody.insertBefore(rowEl, revealSpacer);
+    if(instant || !animObserver){
+      rowEl.classList.add(instant ? "instant" : "in");
+    }else{
+      animObserver.observe(rowEl);
+    }
   }
 
   // ── renderers per node type ──────────────────────────────────────────
