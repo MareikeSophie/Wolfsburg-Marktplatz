@@ -123,8 +123,8 @@ body{
    one message has been revealed, so messages can pop in as you scroll
    instead of a whole screenful appearing at once */
 .reveal-spacer{flex:0 0 auto;}
-.row{display:flex; gap:1.6cqw; max-width:88%; margin-bottom:1.9cqw; opacity:0; transform:translateY(6px);}
-.row.in{animation:rise .28s ease forwards;}
+.row{display:flex; gap:1.6cqw; max-width:88%; margin-bottom:1.9cqw; opacity:0; transform:translateY(32px);}
+.row.in{animation:rise .38s cubic-bezier(.2,.7,.3,1) forwards;}
 .row.outgoing{align-self:flex-end;}
 .row.has-reactions{margin-bottom:3.7cqw;}
 @keyframes rise{to{opacity:1; transform:translateY(0);}}
@@ -137,12 +137,12 @@ body{
 .bubble .name{font-size:3.2cqw; font-weight:600; margin-bottom:0.5cqw;}
 .bubble .text{font-size:3.5cqw; color:#111; line-height:1.4; white-space:pre-wrap;}
 .time{font-size:2.5cqw; color:#8696a0; float:right; margin-left:2.1cqw; margin-top:1.1cqw;}
-.system{text-align:center; margin:1.6cqw 0 2.7cqw; align-self:center; opacity:0;}
-.system.in{animation:rise .28s ease forwards;}
+.system{text-align:center; margin:1.6cqw 0 2.7cqw; align-self:center; opacity:0; transform:translateY(32px);}
+.system.in{animation:rise .38s cubic-bezier(.2,.7,.3,1) forwards;}
 .system span{background:#fff; color:#54656f; font-size:2.9cqw; padding:1.1cqw 2.7cqw; border-radius:7px;}
 .system.event span{background:var(--accent-terracotta); color:#fff; font-weight:600;}
-.date-sep{text-align:center; margin:2.7cqw 0; align-self:center; opacity:0;}
-.date-sep.in{animation:rise .28s ease forwards;}
+.date-sep{text-align:center; margin:2.7cqw 0; align-self:center; opacity:0; transform:translateY(32px);}
+.date-sep.in{animation:rise .38s cubic-bezier(.2,.7,.3,1) forwards;}
 .date-sep span{
   background:#e1f2fb; color:#5a7a8a; font-size:2.9cqw; font-weight:600;
   padding:1.1cqw 3.2cqw; border-radius:8px; text-transform:uppercase; letter-spacing:.04em;
@@ -207,8 +207,8 @@ body{
 .file-card .file-sub{font-size:2.7cqw; color:#8696a0; margin-top:1px;}
 
 /* ── choice points ── */
-.choice-block{align-self:center; max-width:92%; margin:10px 0 16px; opacity:0;}
-.choice-block.in{animation:rise .28s ease forwards;}
+.choice-block{align-self:center; max-width:92%; margin:10px 0 16px; opacity:0; transform:translateY(32px);}
+.choice-block.in{animation:rise .38s cubic-bezier(.2,.7,.3,1) forwards;}
 .choice-prompt{font-size:3.2cqw; color:#54656f; text-align:center; margin-bottom:2.1cqw;}
 .choice-buttons{display:flex; flex-direction:column; gap:1.9cqw;}
 .choice-btn{
@@ -222,9 +222,10 @@ body{
 /* ── ending ── */
 .ending-block{
   align-self:center; max-width:92%; text-align:center; margin:18px 0; opacity:0;
+  transform:translateY(32px);
   background:#fff; border-radius:10px; padding:4.3cqw 4.8cqw; box-shadow:0 2px 10px rgba(0,0,0,.08);
 }
-.ending-block.in{animation:rise .28s ease forwards;}
+.ending-block.in{animation:rise .38s cubic-bezier(.2,.7,.3,1) forwards;}
 .ending-block .ending-title{
   font-size:3.5cqw; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
   color:var(--accent-terracotta); margin-bottom:1.6cqw;
