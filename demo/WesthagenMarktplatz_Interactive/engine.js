@@ -166,6 +166,21 @@
     }
   }
 
+  function renderTypingIndicator(node){
+    const row = el("div", "row");
+    if(!node.isMe){
+      const av = el("div", "av", node.initial || "?");
+      av.style.background = node.bg || "#888";
+      av.style.color = node.fg || "#fff";
+      row.appendChild(av);
+    }
+    const bubble = el("div", "typing-bubble", '<span class="dot"></span><span class="dot"></span><span class="dot"></span>');
+    row.appendChild(bubble);
+    chatbody.insertBefore(row, revealSpacer);
+    row.classList.add("in");
+    return row;
+  }
+
   // ── renderers per node type ──────────────────────────────────────────
 
   function renderMsg(node, instant){
@@ -430,14 +445,38 @@
     persist();
   }
 
+  let revealing = false;
+
   function fillViewport(){
-    let guard = 0;
-    while(!finished && !awaitingChoice && guard < 300){
-      const remaining = chatbody.scrollHeight - chatbody.scrollTop - chatbody.clientHeight;
-      if(remaining > 60) break;
+    if(revealing || finished || awaitingChoice) return;
+    const remaining = chatbody.scrollHeight - chatbody.scrollTop - chatbody.clientHeight;
+    if(remaining > 60) return;
+
+    const node = STORY[cursor];
+    if(!node){ finished = true; return; }
+
+    // Give incoming messages/polls/photos/files a beat of "typing…" first,
+    // so a reveal isn't instant the moment you scroll near the bottom.
+    // Silent structural nodes (date/system/transition/choice/ending/own
+    // messages) skip straight to step() and re-check immediately.
+    const showTyping = !node.isMe &&
+      (node.type === "msg" || node.type === "poll" || node.type === "image" || node.type === "file");
+
+    if(!showTyping){
       step(false);
-      guard++;
+      fillViewport();
+      return;
     }
+
+    revealing = true;
+    const typingRow = renderTypingIndicator(node);
+    const delay = 550 + Math.random() * 350;
+    setTimeout(() => {
+      typingRow.remove();
+      revealing = false;
+      step(false);
+      fillViewport();
+    }, delay);
   }
 
   function replayInstant(){
