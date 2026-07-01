@@ -132,12 +132,12 @@ body{
   margin:0.5em 0; color:#7d8a86;
 }
 .intro-hint.in{animation:rise .38s cubic-bezier(.2,.7,.3,1) forwards;}
-.intro-hint-arrow{
-  font-size:1.3em; line-height:1; animation:introBounce 1.4s ease-in-out infinite;
-}
 .intro-hint-text{
   font-size:0.75em; font-weight:600; text-transform:uppercase; letter-spacing:.06em;
-  margin-top:0.3em;
+}
+.intro-hint-arrow{
+  font-size:1.3em; line-height:1; margin-top:0.3em;
+  animation:introBounce 1.4s ease-in-out infinite;
 }
 @keyframes introBounce{0%,100%{transform:translateY(0);} 50%{transform:translateY(6px);}}
 .row{display:flex; gap:0.375em; max-width:88%; margin-bottom:0.445em; opacity:0; transform:translateY(32px);}
@@ -251,6 +251,7 @@ body{
 
 /* ── typing indicator ── */
 .typing-bubble{background:#fff; border-radius:0 7px 7px 7px; padding:0.563em 0.75em; display:flex; gap:0.258em; align-items:center;}
+.typing-bubble.outgoing{background:#dcf8c6; border-radius:7px 0 7px 7px;}
 .typing-bubble .dot{width:0.305em; height:0.305em; min-width:4px; min-height:4px; border-radius:50%; background:#8696a0; animation:bounce 1s infinite ease-in-out;}
 .typing-bubble .dot:nth-child(2){animation-delay:.15s;}
 .typing-bubble .dot:nth-child(3){animation-delay:.3s;}

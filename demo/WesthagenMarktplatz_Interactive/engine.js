@@ -167,14 +167,16 @@
   }
 
   function renderTypingIndicator(node){
-    const row = el("div", "row");
-    if(!node.isMe){
+    const outgoing = !!node.isMe;
+    const row = el("div", "row" + (outgoing ? " outgoing" : ""));
+    if(!outgoing){
       const av = el("div", "av", node.initial || "?");
       av.style.background = node.bg || "#888";
       av.style.color = node.fg || "#fff";
       row.appendChild(av);
     }
-    const bubble = el("div", "typing-bubble", '<span class="dot"></span><span class="dot"></span><span class="dot"></span>');
+    const bubble = el("div", "typing-bubble" + (outgoing ? " outgoing" : ""),
+      '<span class="dot"></span><span class="dot"></span><span class="dot"></span>');
     row.appendChild(bubble);
     chatbody.insertBefore(row, revealSpacer);
     row.classList.add("in");
@@ -462,8 +464,7 @@
       return;
     }
 
-    const showTyping = !node.isMe &&
-      (node.type === "msg" || node.type === "poll" || node.type === "image" || node.type === "file");
+    const showTyping = node.type === "msg" || node.type === "poll" || node.type === "image" || node.type === "file";
     if(!showTyping){
       step(false);
       cb();
@@ -495,7 +496,7 @@
     // (finger moves up the screen, content advances) — same direction that
     // already drives every later reveal, just made explicit here
     const hint = el("div", "intro-hint",
-      '<div class="intro-hint-arrow">&#8593;</div><div class="intro-hint-text">Swipe up to continue</div>');
+      '<div class="intro-hint-text">Swipe up to continue</div><div class="intro-hint-arrow">&#8593;</div>');
     chatbody.insertBefore(hint, revealSpacer);
     hint.classList.add("in");
     return hint;
