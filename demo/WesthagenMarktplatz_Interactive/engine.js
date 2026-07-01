@@ -6,42 +6,32 @@
     "06 ISO.png","07 ISO.png","08 ISO.png","09 ISO.png","10 ISO.png","11 ISO.png",
     "12 FINAL ISO.png"
   ];
-  const STAGE_MATERIALS = [
-    "0 Materials.png","1 Materials.png","2 Materials.png","3 Materials.png","4 Materials.png",
-    "5 Materials.png","6 Materials.png","7 Materials.png","8 Materials.png","9 Materials.png",
-    "10 Materials.png","11 Materials.png","FINAL ISO Materials.png"
-  ];
   const RENDERINGS_DIR = "../../assets/Renderings/";
-  const MATERIALS_DIR = "../../assets/Materials/";
   const STORAGE_KEY = "westhagenMarktplatzInteractive.v1";
 
   const chatbody = document.getElementById("chatbody");
-  const stageIsoEl = document.getElementById("stageIso");
-  const stageMaterialsEl = document.getElementById("stageMaterials");
-  const stageCaptionEl = document.getElementById("stageCaption");
   const restartBtn = document.getElementById("restartBtn");
+  const cameraVideoEl = document.getElementById("cameraFeed");
+  const cameraEnableBtn = document.getElementById("cameraEnableBtn");
+  const cameraStatusEl = document.getElementById("cameraStatus");
 
   // iPad Safari can briefly report viewport metrics from the wrong
-  // orientation on the very first paint after a fresh load, self-correcting
-  // only once something forces a reflow (a scroll, a resize, an image
-  // finishing loading...). The CSS (min(76vh,660px) on .phone-frame) is the
-  // primary sizing and is fine on its own once that settles — this just
-  // nudges the correction along proactively instead of waiting on the user
-  // to scroll into it, by re-applying an explicit inline height a few times
-  // shortly after load using the true visible size from visualViewport.
-  const phoneFrameEl = document.querySelector(".phone-frame");
+  // orientation on the very first paint after a fresh load, and its compact
+  // toolbar can change the visible height after load too — raw vh/dvh/svh on
+  // body proved unreliable for both. body's height is set directly from
+  // visualViewport instead (re-applied a few times shortly after load and on
+  // resize/orientationchange); .layout/.camera-col/.phone-frame all inherit
+  // a normal percentage-height chain from that in CSS.
   const screenEl = document.querySelector(".screen");
   const CHAT_REFERENCE_WIDTH = 375; // the width the chat's em-based sizing was designed at
 
-  function correctPhoneFrameHeight(){
-    if(phoneFrameEl && window.visualViewport){
-      // mirrors the CSS min(76vh,660px) rule, just computed from the visible
-      // viewport directly instead of trusting the browser's own vh timing
-      phoneFrameEl.style.height = Math.min(window.visualViewport.height * 0.76, 660) + "px";
+  function correctLayoutSizing(){
+    if(window.visualViewport){
+      document.body.style.height = window.visualViewport.height + "px";
     }
     // --chat-scale drives .screen's font-size (em-based sizing cascades from
     // it). Measured directly via getBoundingClientRect right after setting
-    // the height above, so it reflects the real rendered width immediately —
+    // body's height above, so it reflects the real rendered width immediately —
     // no dependency on the browser's own container-query resolution timing,
     // which is what made cqw-based sizing balloon on first paint here.
     if(screenEl){
@@ -49,13 +39,33 @@
       if(w > 0) document.documentElement.style.setProperty("--chat-scale", w / CHAT_REFERENCE_WIDTH);
     }
   }
-  [0, 150, 500, 1200].forEach(delay => setTimeout(correctPhoneFrameHeight, delay));
-  window.addEventListener("resize", correctPhoneFrameHeight);
-  window.addEventListener("orientationchange", () => setTimeout(correctPhoneFrameHeight, 200));
+  [0, 150, 500, 1200].forEach(delay => setTimeout(correctLayoutSizing, delay));
+  window.addEventListener("resize", correctLayoutSizing);
+  window.addEventListener("orientationchange", () => setTimeout(correctLayoutSizing, 200));
   if(window.visualViewport){
-    window.visualViewport.addEventListener("resize", correctPhoneFrameHeight);
+    window.visualViewport.addEventListener("resize", correctLayoutSizing);
   }
-  correctPhoneFrameHeight();
+  correctLayoutSizing();
+
+  // ── camera placeholder ──────────────────────────────────────────────
+  async function enableCamera(){
+    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+      if(cameraStatusEl){ cameraStatusEl.textContent = "Camera not supported in this browser."; cameraStatusEl.hidden = false; }
+      return;
+    }
+    try{
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: "environment" } },
+        audio: false
+      });
+      cameraVideoEl.srcObject = stream;
+      cameraEnableBtn.hidden = true;
+      if(cameraStatusEl) cameraStatusEl.hidden = true;
+    }catch(err){
+      if(cameraStatusEl){ cameraStatusEl.textContent = "Camera unavailable (" + err.message + ")"; cameraStatusEl.hidden = false; }
+    }
+  }
+  if(cameraEnableBtn) cameraEnableBtn.addEventListener("click", enableCamera);
 
   let cursor = START_NODE;
   let stageIndex = 0;
@@ -83,17 +93,6 @@
         choiceAnswers: state ? state.choiceAnswers : {}
       }));
     }catch(e){ /* storage unavailable, ignore */ }
-  }
-
-  function setStageImages(idx){
-    stageIsoEl.classList.remove("shown");
-    stageMaterialsEl.classList.remove("shown");
-    stageIsoEl.src = RENDERINGS_DIR + STAGE_ISO[idx];
-    stageMaterialsEl.src = MATERIALS_DIR + STAGE_MATERIALS[idx];
-    requestAnimationFrame(() => {
-      stageIsoEl.classList.add("shown");
-      stageMaterialsEl.classList.add("shown");
-    });
   }
 
   function findBaselineVotes(pollId, optionCount){
@@ -224,8 +223,6 @@
 
   function renderImage(node, instant){
     stageIndex = Math.min(stageIndex + 1, STAGE_ISO.length - 1);
-    setStageImages(stageIndex);
-    if(stageCaptionEl) stageCaptionEl.textContent = node.caption || "";
 
     const row = el("div", "row");
     const av = el("div", "av", node.initial || "?");
@@ -555,7 +552,6 @@
   }
 
   function init(){
-    setStageImages(0);
     if(state && (state.lastId || state.finished)){
       replayInstant();
       introDone = true; // resuming a session skips the scripted intro entirely

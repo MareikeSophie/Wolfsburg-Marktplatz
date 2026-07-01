@@ -9,23 +9,18 @@
 <body>
 
 <header class="pagehead">
-  <div>
+  <button class="restart-btn" id="restartBtn" type="button" aria-label="Restart">&#8635;</button>
+  <div class="pagehead-text">
     <h1>westhagen plays</h1>
-    <p>Scroll through the neighbourhood chat, vote in the polls, and make choices along the way. Your progress is saved automatically in this browser.</p>
+    <p>Scroll through the neighbourhood chat, choose your own story and see how the design changes.</p>
   </div>
-  <button class="restart-btn" id="restartBtn" type="button">Restart</button>
 </header>
 
 <main class="layout">
-  <section class="design-col" aria-label="Current design stage">
-    <div class="stage-label">Design progress</div>
-    <div class="stage-frame">
-      <img id="stageIso" alt="Current design stage">
-    </div>
-    <div class="materials-strip">
-      <img id="stageMaterials" alt="Materials for current stage">
-    </div>
-    <p class="stage-caption" id="stageCaption">The story hasn't shared a design update yet.</p>
+  <section class="camera-col" aria-label="Camera view">
+    <video id="cameraFeed" class="camera-video" autoplay playsinline muted></video>
+    <button class="camera-enable-btn" id="cameraEnableBtn" type="button">Enable camera</button>
+    <p class="camera-status" id="cameraStatus" hidden></p>
   </section>
 
   <section class="phone-wrap" aria-label="Chat">
