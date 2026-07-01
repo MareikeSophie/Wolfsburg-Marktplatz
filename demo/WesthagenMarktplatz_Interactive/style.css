@@ -122,10 +122,24 @@ body{
   /* stop the scroll from "spilling over" into body once you hit the top/bottom */
   overscroll-behavior-y:contain;
 }
-/* invisible, height set from JS — keeps chatbody scrollable even when only
-   one message has been revealed, so messages can pop in as you scroll
-   instead of a whole screenful appearing at once */
+/* invisible — keeps chatbody scrollable even when only one message has been
+   revealed, so messages can pop in as you scroll instead of a whole
+   screenful appearing at once */
 .reveal-spacer{flex:0 0 auto; height:110px;}
+/* shown once the scripted intro finishes, removed on the first scroll-driven reveal */
+.intro-hint{
+  align-self:center; text-align:center; opacity:0; transform:translateY(32px);
+  margin:0.5em 0; color:#7d8a86;
+}
+.intro-hint.in{animation:rise .38s cubic-bezier(.2,.7,.3,1) forwards;}
+.intro-hint-arrow{
+  font-size:1.3em; line-height:1; animation:introBounce 1.4s ease-in-out infinite;
+}
+.intro-hint-text{
+  font-size:0.75em; font-weight:600; text-transform:uppercase; letter-spacing:.06em;
+  margin-top:0.3em;
+}
+@keyframes introBounce{0%,100%{transform:translateY(0);} 50%{transform:translateY(6px);}}
 .row{display:flex; gap:0.375em; max-width:88%; margin-bottom:0.445em; opacity:0; transform:translateY(32px);}
 .row.in{animation:rise .38s cubic-bezier(.2,.7,.3,1) forwards;}
 .row.outgoing{align-self:flex-end;}

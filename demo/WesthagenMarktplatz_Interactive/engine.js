@@ -447,24 +447,26 @@
 
   let revealing = false;
 
-  function fillViewport(){
-    if(revealing || finished || awaitingChoice) return;
-    const remaining = chatbody.scrollHeight - chatbody.scrollTop - chatbody.clientHeight;
-    if(remaining > 60) return;
-
+  // Reveals exactly one node (with a "typing…" beat first if it warrants
+  // one), then calls back. Shared by the scripted intro and the
+  // scroll-triggered continuation below — they only differ in what decides
+  // *when* to call this and what happens once it's done.
+  function revealOne(cb){
+    if(finished || awaitingChoice){ cb(); return; }
     const node = STORY[cursor];
-    if(!node){ finished = true; return; }
+    if(!node){ finished = true; cb(); return; }
 
-    // Give incoming messages/polls/photos/files a beat of "typing…" first,
-    // so a reveal isn't instant the moment you scroll near the bottom.
-    // Silent structural nodes (date/system/transition/choice/ending/own
-    // messages) skip straight to step() and re-check immediately.
+    if(node.type === "choice"){
+      step(false); // step() itself decides to pause (awaitingChoice) or resolve
+      cb();
+      return;
+    }
+
     const showTyping = !node.isMe &&
       (node.type === "msg" || node.type === "poll" || node.type === "image" || node.type === "file");
-
     if(!showTyping){
       step(false);
-      fillViewport();
+      cb();
       return;
     }
 
@@ -475,8 +477,45 @@
       typingRow.remove();
       revealing = false;
       step(false);
-      fillViewport();
+      cb();
     }, delay);
+  }
+
+  // The chat opens with a short scripted intro (join notice + a handful of
+  // messages) that plays on its own, then pauses with a "scroll to join"
+  // hint instead of continuing to auto-fill the whole screen — scrolling
+  // from then on is what drives every further reveal.
+  const AUTO_INTRO_COUNT = 5;
+  let introDone = false;
+  let introRevealed = 0;
+  let introHintEl = null;
+
+  function renderIntroHint(){
+    const hint = el("div", "intro-hint",
+      '<div class="intro-hint-arrow">&#8595;</div><div class="intro-hint-text">Scroll to join the chat</div>');
+    chatbody.insertBefore(hint, revealSpacer);
+    hint.classList.add("in");
+    return hint;
+  }
+
+  function playIntro(){
+    if(finished || awaitingChoice || introRevealed >= AUTO_INTRO_COUNT){
+      introDone = true;
+      if(!finished && !awaitingChoice) introHintEl = renderIntroHint();
+      return;
+    }
+    revealOne(() => {
+      introRevealed++;
+      playIntro();
+    });
+  }
+
+  function fillViewport(){
+    if(!introDone || revealing || finished || awaitingChoice) return;
+    const remaining = chatbody.scrollHeight - chatbody.scrollTop - chatbody.clientHeight;
+    if(remaining > 60) return;
+    if(introHintEl){ introHintEl.remove(); introHintEl = null; }
+    revealOne(() => fillViewport());
   }
 
   function replayInstant(){
@@ -515,11 +554,13 @@
     setStageImages(0);
     if(state && (state.lastId || state.finished)){
       replayInstant();
+      introDone = true; // resuming a session skips the scripted intro entirely
     }
     chatbody.addEventListener("scroll", onScroll);
     window.addEventListener("resize", () => fillViewport());
     restartBtn.addEventListener("click", restart);
-    fillViewport();
+    if(introDone) fillViewport();
+    else playIntro();
   }
 
   init();
