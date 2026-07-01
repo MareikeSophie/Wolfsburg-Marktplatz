@@ -119,6 +119,10 @@ body{
   /* stop the scroll from "spilling over" into body once you hit the top/bottom */
   overscroll-behavior-y:contain;
 }
+/* invisible, height set from JS — keeps chatbody scrollable even when only
+   one message has been revealed, so messages can pop in as you scroll
+   instead of a whole screenful appearing at once */
+.reveal-spacer{flex:0 0 auto;}
 .row{display:flex; gap:1.6cqw; max-width:88%; margin-bottom:1.9cqw; opacity:0; transform:translateY(6px);}
 .row.in{animation:rise .28s ease forwards;}
 .row.outgoing{align-self:flex-end;}

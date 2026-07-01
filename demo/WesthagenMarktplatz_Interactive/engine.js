@@ -118,9 +118,19 @@
     return `<div class="msg-reactions">${pills}</div>`;
   }
 
+  // A permanently-present blank spacer at the end of the chat keeps chatbody
+  // scrollable even when only one message has been revealed so far — without
+  // it, short content has no overflow and the scroll listener never fires.
+  // New rows are inserted before it, so it always stays last.
+  const revealSpacer = el("div", "reveal-spacer");
+  chatbody.appendChild(revealSpacer);
+  function syncSpacerHeight(){
+    revealSpacer.style.height = (chatbody.clientHeight + 40) + "px";
+  }
+
   function appendRow(rowEl, instant){
     rowEl.classList.add(instant ? "instant" : "in");
-    chatbody.appendChild(rowEl);
+    chatbody.insertBefore(rowEl, revealSpacer);
   }
 
   // ── renderers per node type ──────────────────────────────────────────
@@ -388,10 +398,11 @@
   }
 
   function fillViewport(){
+    syncSpacerHeight();
     let guard = 0;
     while(!finished && !awaitingChoice && guard < 300){
       const remaining = chatbody.scrollHeight - chatbody.scrollTop - chatbody.clientHeight;
-      if(remaining > 140) break;
+      if(remaining > 60) break;
       step(false);
       guard++;
     }
