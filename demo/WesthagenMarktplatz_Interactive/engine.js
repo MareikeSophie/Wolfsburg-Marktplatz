@@ -34,19 +34,26 @@
   const CHAT_REFERENCE_WIDTH = 375; // the width the chat's em-based sizing was designed at
   let lastKnownWidth = window.innerWidth;
 
+  function updateChatScale(){
+    if(!screenEl) return;
+    const w = screenEl.getBoundingClientRect().width;
+    if(w > 0) document.documentElement.style.setProperty("--chat-scale", w / CHAT_REFERENCE_WIDTH);
+  }
+
   function correctLayoutSizing(){
     if(window.visualViewport){
       document.body.style.height = window.visualViewport.height + "px";
     }
-    // --chat-scale drives .screen's font-size (em-based sizing cascades from
-    // it). Measured directly via getBoundingClientRect right after setting
-    // body's height above, so it reflects the real rendered width immediately —
-    // no dependency on the browser's own container-query resolution timing,
-    // which is what made cqw-based sizing balloon on first paint here.
-    if(screenEl){
-      const w = screenEl.getBoundingClientRect().width;
-      if(w > 0) document.documentElement.style.setProperty("--chat-scale", w / CHAT_REFERENCE_WIDTH);
-    }
+    updateChatScale();
+  }
+  // --chat-scale drives .screen's font-size (em-based sizing cascades from
+  // it). A ResizeObserver reacts to .screen's *actual* rendered width the
+  // instant it changes, instead of guessing with fixed timeouts — the phone
+  // (and so .screen) keeps resizing for a bit while body's height above
+  // settles, and fixed-delay snapshots caught it mid-way, looking like the
+  // whole chat kept growing during the intro instead of being a fixed size.
+  if("ResizeObserver" in window && screenEl){
+    new ResizeObserver(updateChatScale).observe(screenEl);
   }
   [0, 150, 500, 1200].forEach(delay => setTimeout(correctLayoutSizing, delay));
   window.addEventListener("resize", () => {
@@ -501,11 +508,26 @@
   let introRevealed = 0;
   let introHintEl = null;
 
+  // A bigger phone screen can fit the whole intro + hint with room to spare —
+  // if chatbody isn't actually overflowing, no scroll event ever fires, so
+  // "scroll to continue" would be stuck forever. Pad the spacer just enough
+  // (never less than its CSS default) to guarantee a little real overflow,
+  // whatever the phone's current height happens to be.
+  function ensureScrollable(){
+    const spacerH = revealSpacer.getBoundingClientRect().height;
+    const contentH = chatbody.scrollHeight - spacerH;
+    // +150 (not just enough to overflow) so the hint/last message doesn't
+    // sit right at the reveal threshold and fire the instant it's shown
+    const needed = Math.max(110, chatbody.clientHeight - contentH + 150);
+    revealSpacer.style.height = needed + "px";
+  }
+
   function renderIntroHint(){
     const hint = el("div", "intro-hint",
       '<div class="intro-hint-text">Scroll to continue</div><div class="intro-hint-arrow">&#8595;</div>');
     chatbody.insertBefore(hint, revealSpacer);
     hint.classList.add("in");
+    ensureScrollable();
     return hint;
   }
 
@@ -523,6 +545,7 @@
 
   function fillViewport(){
     if(!introDone || revealing || finished || awaitingChoice) return;
+    ensureScrollable();
     const remaining = chatbody.scrollHeight - chatbody.scrollTop - chatbody.clientHeight;
     if(remaining > 60) return;
     if(introHintEl){ introHintEl.remove(); introHintEl = null; }
