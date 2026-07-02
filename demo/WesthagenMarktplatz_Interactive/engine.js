@@ -23,14 +23,16 @@
   // resize/orientationchange); .layout/.camera-col/.phone-frame all inherit
   // a normal percentage-height chain from that in CSS.
   //
-  // Deliberately NOT listening to visualViewport's own "resize" event here:
-  // scrolling the chat internally can make iOS Safari's toolbar animate in/out
-  // mid-gesture, which fires that event too — reacting to it live resized the
-  // whole layout while the user was mid-scroll, briefly shrinking everything
-  // (and, via the chain below, the phone) before it could settle back. Only
-  // load-time retries + genuine resize/orientationchange trigger a re-measure.
+  // Deliberately NOT listening to visualViewport's own "resize" event, and
+  // guarding the plain window "resize" listener to only act when the WIDTH
+  // actually changed: scrolling the chat internally can make iOS Safari's
+  // toolbar animate in/out mid-gesture, and that fires height-only resize
+  // events on both APIs — reacting to those live thrashed the whole layout
+  // while the user was mid-scroll. A genuine resize/rotation always changes
+  // width too, so filtering on that reliably tells the two apart.
   const screenEl = document.querySelector(".screen");
   const CHAT_REFERENCE_WIDTH = 375; // the width the chat's em-based sizing was designed at
+  let lastKnownWidth = window.innerWidth;
 
   function correctLayoutSizing(){
     if(window.visualViewport){
@@ -47,8 +49,15 @@
     }
   }
   [0, 150, 500, 1200].forEach(delay => setTimeout(correctLayoutSizing, delay));
-  window.addEventListener("resize", correctLayoutSizing);
-  window.addEventListener("orientationchange", () => setTimeout(correctLayoutSizing, 200));
+  window.addEventListener("resize", () => {
+    if(window.innerWidth === lastKnownWidth) return; // height-only change: toolbar animating, ignore
+    lastKnownWidth = window.innerWidth;
+    correctLayoutSizing();
+  });
+  window.addEventListener("orientationchange", () => {
+    lastKnownWidth = window.innerWidth;
+    setTimeout(correctLayoutSizing, 200);
+  });
   correctLayoutSizing();
 
   // ── camera placeholder ──────────────────────────────────────────────
@@ -493,11 +502,8 @@
   let introHintEl = null;
 
   function renderIntroHint(){
-    // arrow points up: the gesture that continues the chat is swiping up
-    // (finger moves up the screen, content advances) — same direction that
-    // already drives every later reveal, just made explicit here
     const hint = el("div", "intro-hint",
-      '<div class="intro-hint-text">Swipe up to continue</div><div class="intro-hint-arrow">&#8593;</div>');
+      '<div class="intro-hint-text">Scroll to continue</div><div class="intro-hint-arrow">&#8595;</div>');
     chatbody.insertBefore(hint, revealSpacer);
     hint.classList.add("in");
     return hint;
