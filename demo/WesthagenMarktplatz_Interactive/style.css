@@ -32,7 +32,7 @@ body{
 
 /* ── page header ── */
 .pagehead{
-  flex:0 0 auto; width:100%; max-width:1200px; padding:14px 16px 6px; display:flex;
+  flex:0 0 auto; width:100%; padding:14px 16px 6px; display:flex;
   align-items:flex-end; gap:10px;
 }
 .pagehead-text h1{margin:0; font-size:clamp(20px,2.6vw,28px); letter-spacing:.01em;}
@@ -48,7 +48,7 @@ body{
 
 /* ── layout ── */
 .layout{
-  flex:1 1 auto; min-height:0; width:100%; max-width:1200px; padding:0 16px 12px;
+  flex:1 1 auto; min-height:0; width:100%; padding:0 16px 8px;
   display:flex; gap:24px; align-items:stretch;
 }
 
