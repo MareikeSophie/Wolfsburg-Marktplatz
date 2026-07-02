@@ -22,6 +22,13 @@
   // visualViewport instead (re-applied a few times shortly after load and on
   // resize/orientationchange); .layout/.camera-col/.phone-frame all inherit
   // a normal percentage-height chain from that in CSS.
+  //
+  // Deliberately NOT listening to visualViewport's own "resize" event here:
+  // scrolling the chat internally can make iOS Safari's toolbar animate in/out
+  // mid-gesture, which fires that event too — reacting to it live resized the
+  // whole layout while the user was mid-scroll, briefly shrinking everything
+  // (and, via the chain below, the phone) before it could settle back. Only
+  // load-time retries + genuine resize/orientationchange trigger a re-measure.
   const screenEl = document.querySelector(".screen");
   const CHAT_REFERENCE_WIDTH = 375; // the width the chat's em-based sizing was designed at
 
@@ -42,9 +49,6 @@
   [0, 150, 500, 1200].forEach(delay => setTimeout(correctLayoutSizing, delay));
   window.addEventListener("resize", correctLayoutSizing);
   window.addEventListener("orientationchange", () => setTimeout(correctLayoutSizing, 200));
-  if(window.visualViewport){
-    window.visualViewport.addEventListener("resize", correctLayoutSizing);
-  }
   correctLayoutSizing();
 
   // ── camera placeholder ──────────────────────────────────────────────
