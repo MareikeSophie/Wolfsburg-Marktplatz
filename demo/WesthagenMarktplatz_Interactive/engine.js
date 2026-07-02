@@ -55,6 +55,38 @@
   if("ResizeObserver" in window && screenEl){
     new ResizeObserver(updateChatScale).observe(screenEl);
   }
+  // TEMPORARY diagnostic overlay — remove once the iPad layout bug is found.
+  // Shows real computed values on-device so we don't have to guess blind.
+  (function debugOverlay(){
+    const box = document.createElement("div");
+    box.style.cssText = "position:fixed;top:0;left:0;z-index:99999;background:rgba(0,0,0,.85);" +
+      "color:#0f0;font:10px/1.4 monospace;padding:6px 8px;white-space:pre;pointer-events:none;max-width:60vw;";
+    document.body.appendChild(box);
+    const camEl = document.querySelector(".camera-col");
+    const pFrame = document.querySelector(".phone-frame");
+    const pWrap = document.querySelector(".phone-wrap");
+    const layoutEl = document.querySelector(".layout");
+    function fmt(el){
+      if(!el) return "n/a";
+      const r = el.getBoundingClientRect();
+      return `${r.width.toFixed(0)}x${r.height.toFixed(0)} @(${r.left.toFixed(0)},${r.top.toFixed(0)})`;
+    }
+    function tick(){
+      box.textContent =
+        "innerW/H: " + window.innerWidth + "x" + window.innerHeight + "\n" +
+        "vv W/H: " + (window.visualViewport ? window.visualViewport.width.toFixed(0)+"x"+window.visualViewport.height.toFixed(0) : "n/a") + "\n" +
+        "dpr: " + window.devicePixelRatio + "\n" +
+        "body: " + fmt(document.body) + " style.h=" + document.body.style.height + "\n" +
+        "layout: " + fmt(layoutEl) + "\n" +
+        "camera-col: " + fmt(camEl) + "\n" +
+        "phone-wrap: " + fmt(pWrap) + "\n" +
+        "phone-frame: " + fmt(pFrame) + "\n" +
+        "UA: " + navigator.userAgent.slice(0, 70);
+    }
+    tick();
+    setInterval(tick, 500);
+  })();
+
   [0, 150, 500, 1200].forEach(delay => setTimeout(correctLayoutSizing, delay));
   window.addEventListener("resize", () => {
     if(window.innerWidth === lastKnownWidth) return; // height-only change: toolbar animating, ignore
