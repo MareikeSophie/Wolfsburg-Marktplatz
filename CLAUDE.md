@@ -15,9 +15,10 @@ Es gibt **drei unabhängige Demos**:
 4. **`demo/WesthagenMarktplatz_Demo.html`** – älteres Demo (~64,8 MB), 150 MESSAGES, 9 Tage (Wochentage ohne vollständiges Datum), keine Stages/Decision Trees, Message-Typen: `date`, `system`, `msg`, `poll`, `transition`, `image`, `file`, `fastForward`, `event`. Struktur deutlich einfacher als Demo 1. Die 65 MB kommen fast vollständig aus einem `STAGES`-Array (13 Einträge × `iso`+`materials`, base64), das dieselben Bilder erneut einbettet, die bereits unter `assets/Renderings/` und `assets/Materials/` liegen.
 
 ### Demo 3: WesthagenMarktplatz Interactive (in Arbeit, siehe unten)
-5. **`demo/WesthagenMarktplatz_Interactive/`** (`index.html` + `style.css` + `story.js` + `engine.js`, ~90 KB) – echte scrollbare/interaktive Website statt Autoplay-Slide, basiert 1:1 auf dem Content von Demo 2. Kein Base64: Bilder werden per `<img>` direkt aus `assets/Renderings/` und `assets/Materials/` referenziert.
+5. **`demo/WesthagenMarktplatz_Interactive/`** (`index.html` + `style.css` + `story.js` + `engine.js`) – echte scrollbare/interaktive Website statt Autoplay-Slide, basiert 1:1 auf dem Content von Demo 2, layoutet für iPad 11" Querformat (Kiosk-artig, volle Browserhöhe). Kein Base64: Bilder werden per `<img>` direkt aus `assets/Renderings/` und `assets/Materials/` referenziert.
    - `story.js` (generiert): `STORY`-Objekt, Nodes keyed by `id` (`m1`…`m150`) mit `next`-Zeiger statt Array-Index — vorbereitet für spätere `type:"choice"`/`type:"ending"`-Nodes (Branching noch nicht befüllt, s. "Aktueller Stand").
-   - `engine.js`: scroll-getriebenes Nachladen (kein Timer/Autoplay), klickbare Polls (Ergebnis + eigene Stimme via `localStorage` gespeichert), Design-Spalte folgt `image`-Nodes.
+   - `engine.js`: scroll-getriebenes Nachladen (kein Timer/Autoplay), scripted Intro (7 Nachrichten) + "Scroll to continue"-Hinweis, "tippt..."-Indikator vor jeder Nachricht, klickbare Polls (Ergebnis + eigene Stimme via `localStorage` gespeichert), rechts fest positionierter Phone-Screen (19,5:9, volle Zeilenhöhe), links eine schwarze Kamera-Box mit echtem Live-Kamerazugriff (`getUserMedia`, Hauptkamera/`facingMode:"environment"`) statt der alten Design-Fortschritts-Anzeige.
+   - **Cache-Busting:** `index.html` referenziert `style.css?v=N` / `story.js?v=N` / `engine.js?v=N` — GitHub Pages sendet `Cache-Control: max-age=600`, und iOS Safaris normaler Reload umgeht das nicht zuverlässig. **`N` bei jeder CSS/JS-Änderung hochzählen**, sonst wirken Fixes auf Geräten so, als seien sie nie angekommen.
 
 **Wichtig:** Inhaltliche Änderungen am Chatverlauf müssen in HTML-Demo UND entsprechendem .docx gleichzeitig nachgezogen werden. Das gilt aktuell nicht für Demo 3, solange dort nur 1:1 portierter Content ohne eigenes Wording steht.
 
@@ -96,9 +97,20 @@ Demo ist vollständig fertig:
 - Kalender: 6-Monats-Jahr-Ansicht April–September
 - Demo-Laufzeit: ~4,6 min (1×) / ~3,1 min (1,5×) / ~2,3 min (2×)
 
-## Demo 3 — Aktueller Stand (2026-07-01)
+## Demo 3 — Aktueller Stand (2026-07-02)
 
-Gerüst + 1:1-Content-Port sind fertig und getestet (Node-Count-Diff gegen Demo 2, jsdom-Smoke-Test aller 150 Nodes inkl. Poll-Klick/Reload-Persistenz — kein echter Browser-Test möglich, da im Environment weder `chromium-cli` noch `playwright` installiert sind). Noch offen, bewusst nicht Teil dieser Iteration:
+Gerüst + 1:1-Content-Port + iPad-Layout + Live-Kamera-Platzhalter sind fertig, gepusht (GitHub Pages, `MareikeSophie/Wolfsburg-Marktplatz`) und auf einem echten iPad 11" verifiziert. Noch offen, bewusst nicht Teil dieser Iteration:
 - Platzierung und Wording der Branch-Punkte (`type:"choice"`) und der 3 Endings (`type:"ending"`) — Content-Design, gemeinsam mit Nutzerin zu erarbeiten.
 - `.docx`-Skript für Demo 3, sobald der Branch-Content feststeht.
-- Echter Browser-Check vor Auslieferung. Lokal am einfachsten über einen simplen HTTP-Server öffnen (z.B. `npx serve .` im Projektroot, dann `/demo/WesthagenMarktplatz_Interactive/`), damit die relativen `../../assets/...`-Bildpfade sicher genauso aufgelöst werden wie später online.
+
+**iPad-Safari-spezifische Bugs, die diese Session gefunden/gefixt hat** (relevant für jede künftige Layout-Änderung an dieser Demo):
+- `100vh`/`100dvh`/`100svh` auf `body` sind auf iPad Safari unzuverlässig (Toolbar-Ein-/Ausblenden ändert die tatsächlich sichtbare Höhe). Fix: `body.style.height` wird per JS aus `window.visualViewport.height` gesetzt (mehrere Retries kurz nach Load + bei `resize`/`orientationchange`).
+- **Niemals auf `window.visualViewport`s eigenes `"resize"`-Event reagieren**, wenn im Chat gescrollt wird — internes Scrollen lässt Safaris kompakte Toolbar animieren, was dieses Event auslöst und bei Reaktion das ganze Layout mitten im Scrollen zerreißt. Nur Load-Retries + `resize`/`orientationchange` triggern ein Re-Measure; der `window`-eigene `resize`-Listener zusätzlich nur bei echter Breitenänderung reagieren lassen (Toolbar ändert nur die Höhe).
+- CSS Container Queries (`cqw`) für die Chat-Skalierung: iPadOS Safari löst die Container-Breite beim allerersten Rendern manchmal falsch/zu groß auf. Ersetzt durch `--chat-scale`, eine CSS-Custom-Property, die per JS aus `getBoundingClientRect()` gesetzt wird (`em`-Einheiten statt `cqw`), zusätzlich per `ResizeObserver` (nicht nur Timeouts) aktuell gehalten.
+- Prozentuale `padding` auf einem Element mit `width:auto` + `aspect-ratio` (Phone-Bezel) wird von Safari falsch/zu dick berechnet — Reihenfolge-Problem, da die Breite erst aus `aspect-ratio` abgeleitet werden muss. Fix: feste `px`-Werte statt `%`.
+- **Größter Bug:** Ein verschachtelter Flex-Container (`.phone-wrap`, `flex:0 0 auto`) dessen einziges Kind `aspect-ratio` + `height:100%` nutzt, wurde von iPad Safari mit einer absurd falschen Breite berechnet (862px in einem 840px breiten Viewport!) — dadurch bekam die Kamera-Spalte daneben 0px Breite. Nur auf iPad/WebKit reproduzierbar, Laptop-Browser zeigten es korrekt. Fix: Wrapper entfernt, `.phone-frame` ist jetzt direktes Flex-Item von `.layout`.
+- **Cache:** iOS Safaris Reload-Button umgeht `Cache-Control`-Header nicht zuverlässig — mehrere „der Fix kommt nicht an“-Meldungen waren tatsächlich Cache, kein Code-Fehler. Siehe `?v=N`-Hinweis oben.
+
+**Debugging-Technik, die sich bewährt hat:** Bei „sieht auf dem Gerät falsch aus"-Reports, die sich nicht durch Screenshots allein klären lassen, ein **temporäres Diagnose-Overlay** einbauen (`getBoundingClientRect()` der betroffenen Elemente + `visualViewport`/`innerWidth`/`devicePixelRatio` als Text direkt auf der Seite anzeigen), Nutzerin um einen Screenshot davon bitten, danach Overlay wieder entfernen. Deutlich schneller als mehrere Blind-Fix-Runden mit Deploy-Wartezeit.
+
+Lokal testen: einfacher HTTP-Server (z.B. `npx serve .` im Projektroot, dann `/demo/WesthagenMarktplatz_Interactive/`), damit die relativen `../../assets/...`-Bildpfade genauso aufgelöst werden wie online.
