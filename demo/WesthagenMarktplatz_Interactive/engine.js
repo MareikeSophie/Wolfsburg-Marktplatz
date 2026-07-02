@@ -64,7 +64,6 @@
     document.body.appendChild(box);
     const camEl = document.querySelector(".camera-col");
     const pFrame = document.querySelector(".phone-frame");
-    const pWrap = document.querySelector(".phone-wrap");
     const layoutEl = document.querySelector(".layout");
     function fmt(el){
       if(!el) return "n/a";
@@ -79,7 +78,6 @@
         "body: " + fmt(document.body) + " style.h=" + document.body.style.height + "\n" +
         "layout: " + fmt(layoutEl) + "\n" +
         "camera-col: " + fmt(camEl) + "\n" +
-        "phone-wrap: " + fmt(pWrap) + "\n" +
         "phone-frame: " + fmt(pFrame) + "\n" +
         "UA: " + navigator.userAgent.slice(0, 70);
     }

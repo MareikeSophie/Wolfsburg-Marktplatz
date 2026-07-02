@@ -76,7 +76,6 @@ body{
 }
 
 /* ── right: phone ── */
-.phone-wrap{flex:0 0 auto; height:100%; display:flex; align-items:center; justify-content:center;}
 .phone-frame{
   /* fixed 19.5:9 phone aspect ratio, always — height is 100% of the row
      (see body height note above), width is derived from it via
@@ -84,8 +83,17 @@ body{
      value, not a percentage: percentage padding resolves against the
      *width*, but that width itself is only known once aspect-ratio
      resolves it from height — percentages here made the bezel render
-     much thicker than intended, presumably a resolution-order quirk. */
-  height:100%; width:auto; aspect-ratio:9/19.5;
+     much thicker than intended, presumably a resolution-order quirk.
+
+     This used to be wrapped in a separate .phone-wrap flex/centering
+     container. iPadOS Safari computed that wrapper's own width wildly
+     wrong (auto-sizing a flex item whose only child uses aspect-ratio +
+     height:100% — a nested flex + aspect-ratio combination it clearly
+     doesn't resolve correctly), stealing all the width meant for
+     .camera-col and floating the phone off-center instead of flush
+     right. Making .phone-frame itself the direct flex item of .layout
+     removes that nested case entirely. */
+  flex:0 0 auto; height:100%; width:auto; aspect-ratio:9/19.5;
   overflow:hidden; background:#0b0b0b; border-radius:9%/4.3%; padding:10px 8px;
   border:1px solid #3a3a3a; display:flex; flex-direction:column;
 }
@@ -274,6 +282,5 @@ body{
   body{height:auto; min-height:100%; overflow:visible;}
   .layout{flex-direction:column; align-items:center;}
   .camera-col{width:100%; height:min(40vh,360px); flex:0 0 auto;}
-  .phone-wrap{height:auto;}
   .phone-frame{height:min(60vh,600px);}
 }
